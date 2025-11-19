@@ -125,15 +125,15 @@ Proposed project layout – changes can be made during development
 5) Create tables (choose ONE method)
 - Option A — run the SQL directly:
   ```bash
-  mysql -h "$HOST" -P "$PORT" -u "$USER" -p "$DATABASE" < schema/sql/creation.sql
+  mysql -h "$HOST" -P "$PORT" -u "$USER" -D "$DATABASE" -p < schema/sql/creation.sql
   ```
   Windows (CMD):
   ```cmd
-  mysql -h "%HOST%" -P "%PORT%" -u "%USER%" -p "%DATABASE%" < schema\sql\creation.sql
+  mysql -h "%HOST%" -P "%PORT%" -u "%USER%" -D "%DATABASE%" -p < schema\sql\creation.sql
   ```
   Windows (PowerShell) — using -e with source:
   ```powershell
-  mysql -h $env:HOST -P $env:PORT -u $env:USER -p $env:DATABASE -e "source schema/sql/creation.sql"
+  mysql -h $env:HOST -P $env:PORT -u $env:USER -D $env:DATABASE -p -e "source schema/sql/creation.sql"
   ```
 - Option B — use the Python helper:
   ```bash
@@ -144,15 +144,15 @@ Proposed project layout – changes can be made during development
 6) Seed mock data
 - Option A - run the SQL directly:
     ```bash
-    mysql -h "$HOST" -P "$PORT" -u "$USER" -p "$DATABASE" < schema/sql/mock_data.sql
+    mysql -h "$HOST" -P "$PORT" -u "$USER" -D "$DATABASE" -p < schema/sql/mock_data.sql
     ```
     Windows (CMD):
     ```cmd
-    mysql -h "%HOST%" -P "%PORT%" -u "%USER%" -p "%DATABASE%" < schema\sql\mock_data.sql
+    mysql -h "%HOST%" -P "%PORT%" -u "%USER%" -D "%DATABASE%" -p < schema\sql\mock_data.sql
     ```
     Windows (PowerShell) — using -e with source:
     ```powershell
-    mysql -h $env:HOST -P $env:PORT -u $env:USER -p $env:DATABASE -e "source schema/sql/mock_data.sql"
+    mysql -h $env:HOST -P $env:PORT -u $env:USER -D $env:DATABASE -p -e "source schema/sql/mock_data.sql"
     ```
 - Option B - use the Python helper:
     ```bash
