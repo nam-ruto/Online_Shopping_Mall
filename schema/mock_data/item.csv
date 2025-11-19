@@ -1,0 +1,6 @@
+id,name,description,category,price,stock_quantity,like_count
+1,Wireless Mouse,"Ergonomic 2.4G wireless mouse with USB receiver",Electronics,25.99,100,12
+2,Mechanical Keyboard,"RGB mechanical keyboard with blue switches",Electronics,79.99,50,25
+3,USB-C Charger,"45W fast-charging USB-C wall adapter",Accessories,19.99,200,8
+4,Noise Cancelling Headphones,"Over-ear Bluetooth headphones with active noise cancelling",Electronics,129.99,30,30
+

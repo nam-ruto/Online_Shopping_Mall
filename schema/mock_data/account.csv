@@ -1,0 +1,5 @@
+id,user_name,password,salt,first_name,last_name,role,email,country,state,city,address_line,zip_code,phone
+11111111-1111-1111-1111-111111111111,namruto,hashed_pw_1,1234,Nam,Hoang,Customer,nam@example.com,USA,AL,Troy,123 University Ave,36082,3345550001
+22222222-2222-2222-2222-222222222222,bob02,hashed_pw_2,5678,Bob,Dylan,Customer,bob@example.com,USA,AL,Montgomery,456 Market St,36104,3345550002
+33333333-3333-3333-3333-333333333333,mike123,hashed_pw_3,9ABC,Michael,Jordan,CEO,ceo@shoppingmall.com,USA,AL,Troy,1 Admin Plaza,36082,3345550003
+
