@@ -1,8 +1,76 @@
 ## Online Shopping Mall
 
 ## Project layout
+Proposed project layout – changes can be made during development
 ```
-Add later...
+├── app/
+│   ├── __init__.py
+│   ├── __main__.py                  # allows: python -m app
+│   ├── cli/
+│   │   ├── __init__.py
+│   │   ├── main.py                  # console menu & routing
+│   │   ├── customer_cli.py          # customer flows (cart, pay, like, message)
+│   │   ├── staff_cli.py             # staff flows (inventory, CRUD items, reply)
+│   │   └── ceo_cli.py               # CEO flows (view daily/monthly reports)
+│   ├── config/
+│   │   ├── __init__.py
+│   │   └── settings.py              # DB URL, email config, report times
+│   ├── db/
+│   │   ├── __init__.py
+│   │   └──connection.py             # DB connection factory
+│   ├── models/                      # pure OOP entities (no DB)
+│   │   ├── __init__.py
+│   │   ├── enums.py                 # Roles, OrderStatus, ReportType, PaymentMethod
+│   │   ├── account.py
+│   │   ├── item.py
+│   │   ├── order.py
+│   │   ├── order_item.py
+│   │   ├── message.py
+│   │   ├── report.py
+│   │   ├── report_content.py
+│   │   └── liked_item.py
+│   ├── repositories/                # DB access (CRUD, queries) per aggregate
+│   │   ├── __init__.py
+│   │   ├── base.py
+│   │   ├── account_repository.py
+│   │   ├── item_repository.py
+│   │   ├── order_repository.py
+│   │   ├── message_repository.py
+│   │   ├── report_repository.py
+│   │   └── liked_item_repository.py
+│   ├── services/                    # business logic/use-cases
+│   │   ├── __init__.py
+│   │   ├── auth_service.py          # register/login, password hashing+salt
+│   │   ├── item_service.py          # list/sort by likes, CRUD (staff)
+│   │   ├── cart_service.py          # add/remove; prevent add when stock=0
+│   │   ├── order_service.py         # checkout, create order & order_items
+│   │   ├── payment_service.py       # simulate credit/debit, produce receipt
+│   │   ├── email_service.py         # send receipt (mock)
+│   │   ├── messaging_service.py     # customer-staff messages, unread handling
+│   │   ├── like_service.py          # like/unlike, maintain like_count
+│   │   └── report_service.py        # daily & monthly report generation
+│   └── utils/
+│       ├── __init__.py
+│       ├── hashing.py               # salt + hash helpers
+│       ├── validators.py
+│       └── scheduling.py            # schedule daily 21:00 and month-end jobs
+├── scripts/
+│   ├── run_console.sh               # runs python -m app
+│   └── init_db.sh                   # apply schema/sql/creation.sql
+├── tests/
+│   ├── __init__.py
+│   ├── unit/
+│   │   └── test_sample.py
+│   └── integration/
+│       └── test_end_to_end.py
+├── schema/                          # (already exists; keep as source of truth)
+│   ├── init/
+│   ├── mock_data/
+│   └── sql/
+│       └── creation.sql
+├── .env.example                     # DB creds, EMAIL_FROM, REPORT_TIME=21:00
+├── requirements.txt                 # deps (e.g., PyMySQL, passlib, python-dotenv, schedule)
+└── README.md
 ```
 
 
@@ -23,6 +91,18 @@ Add later...
     ```bash
     python3 -m venv .venv
     source .venv/bin/activate
+    python -m pip install --upgrade pip
+    ```
+    Windows (CMD):
+    ```cmd
+    python -m venv .venv
+    .\.venv\Scripts\activate.bat
+    python -m pip install --upgrade pip
+    ```
+    Windows (PowerShell):
+    ```powershell
+    python -m venv .venv
+    . .\.venv\Scripts\Activate.ps1
     python -m pip install --upgrade pip
     ```
 
@@ -47,16 +127,32 @@ Add later...
   ```bash
   mysql -h "$HOST" -P "$PORT" -u "$USER" -p "$DATABASE" < schema/sql/creation.sql
   ```
+  Windows (CMD):
+  ```cmd
+  mysql -h "%HOST%" -P "%PORT%" -u "%USER%" -p "%DATABASE%" < schema\sql\creation.sql
+  ```
+  Windows (PowerShell) — using -e with source:
+  ```powershell
+  mysql -h $env:HOST -P $env:PORT -u $env:USER -p $env:DATABASE -e "source schema/sql/creation.sql"
+  ```
 - Option B — use the Python helper:
   ```bash
   cd schema/init
   python creation.py
   ```
 
-6) Seed mock data (Python helper)
+6) Seed mock data
 - Option A - run the SQL directly:
     ```bash
-    mysql -h "$HOST" -P "$PORT" -u "$USER" -p "$NAME" < schema/sql/mock_data.sql
+    mysql -h "$HOST" -P "$PORT" -u "$USER" -p "$DATABASE" < schema/sql/mock_data.sql
+    ```
+    Windows (CMD):
+    ```cmd
+    mysql -h "%HOST%" -P "%PORT%" -u "%USER%" -p "%DATABASE%" < schema\sql\mock_data.sql
+    ```
+    Windows (PowerShell) — using -e with source:
+    ```powershell
+    mysql -h $env:HOST -P $env:PORT -u $env:USER -p $env:DATABASE -e "source schema/sql/mock_data.sql"
     ```
 - Option B - use the Python helper:
     ```bash

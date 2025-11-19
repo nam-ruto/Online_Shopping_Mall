@@ -65,7 +65,7 @@ CREATE TABLE `order` (
     to_address_line VARCHAR(50),
     total_amount    DECIMAL(10,2) NOT NULL,
     order_date      DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    status          ENUM('Processing', 'Shipped', 'Delivered', 'Refunded') NOT NULL DEFAULT 'Processing',
+    status          ENUM('In Cart', 'Processing', 'Shipped', 'Delivered', 'Refunded') NOT NULL DEFAULT 'In Cart',
     payment_method  ENUM('Credit', 'Debit') NOT NULL,
     created_at      DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at      DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -82,7 +82,7 @@ CREATE TABLE message (
     id              INT           NOT NULL AUTO_INCREMENT,
     conversation_id INT           NOT NULL,
     user_id         CHAR(36)      NOT NULL,
-    role            ENUM('customer', 'staff', 'system') NOT NULL,
+    role            ENUM('Customer', 'Staff', 'System') NOT NULL,
     content         TEXT          NOT NULL,
     created_at      DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at      DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -132,6 +132,25 @@ CREATE TABLE report_content (
         ON UPDATE CASCADE
         ON DELETE RESTRICT,
     CONSTRAINT fk_report_content_item
+        FOREIGN KEY (item_id) REFERENCES item(id)
+        ON UPDATE CASCADE
+        ON DELETE RESTRICT
+);
+
+-- 8. LIKED_ITEM
+CREATE TABLE liked_item (
+    id           INT           NOT NULL AUTO_INCREMENT,
+    customer_id  CHAR(36)      NOT NULL,
+    item_id      INT           NOT NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_liked_item_customer_item (customer_id, item_id),
+    KEY idx_liked_item_customer_id (customer_id),
+    KEY idx_liked_item_item_id (item_id),
+    CONSTRAINT fk_liked_item_customer
+        FOREIGN KEY (customer_id) REFERENCES account(id)
+        ON UPDATE CASCADE
+        ON DELETE RESTRICT,
+    CONSTRAINT fk_liked_item_item
         FOREIGN KEY (item_id) REFERENCES item(id)
         ON UPDATE CASCADE
         ON DELETE RESTRICT
