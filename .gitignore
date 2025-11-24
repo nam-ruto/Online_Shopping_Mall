@@ -2,4 +2,4 @@ __pycache__/
 .env
 .venv
 
-req.txt
+project_desc.txt
