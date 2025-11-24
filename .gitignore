@@ -2,7 +2,6 @@ __pycache__/
 .env
 .venv
 
-
 project_desc.txt
 
 .cursor/
