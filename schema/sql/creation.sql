@@ -81,6 +81,7 @@ CREATE TABLE `order` (
 CREATE TABLE message (
     id              INT           NOT NULL AUTO_INCREMENT,
     conversation_id INT           NOT NULL,
+    subject         VARCHAR(200)  NOT NULL,
     user_id         CHAR(36)      NOT NULL,
     role            ENUM('Customer', 'Staff', 'System') NOT NULL,
     content         TEXT          NOT NULL,
