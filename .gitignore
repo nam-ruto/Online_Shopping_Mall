@@ -5,3 +5,5 @@ __pycache__/
 project_desc.txt
 
 .cursor/
+
+.DS_Store
