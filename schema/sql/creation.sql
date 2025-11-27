@@ -3,6 +3,7 @@
 DROP TABLE IF EXISTS report_content;
 DROP TABLE IF EXISTS order_item;
 DROP TABLE IF EXISTS message;
+DROP TABLE IF EXISTS conversation;
 DROP TABLE IF EXISTS `order`;
 DROP TABLE IF EXISTS report;
 DROP TABLE IF EXISTS item;
@@ -77,11 +78,25 @@ CREATE TABLE `order` (
         ON DELETE RESTRICT
 );
 
--- 5. MESSAGE
+-- 5. CONVERSATION
+CREATE TABLE conversation (
+    id              INT           NOT NULL AUTO_INCREMENT,
+    customer_id     CHAR(36)      NOT NULL,
+    subject         VARCHAR(200)  NOT NULL,
+    created_at      DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at      DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    KEY idx_conversation_customer_id (customer_id),
+    CONSTRAINT fk_conversation_customer
+        FOREIGN KEY (customer_id) REFERENCES account(id)
+        ON UPDATE CASCADE
+        ON DELETE RESTRICT
+);
+
+-- 6. MESSAGE
 CREATE TABLE message (
     id              INT           NOT NULL AUTO_INCREMENT,
     conversation_id INT           NOT NULL,
-    subject         VARCHAR(200)  NOT NULL,
     user_id         CHAR(36)      NOT NULL,
     role            ENUM('Customer', 'Staff', 'System') NOT NULL,
     content         TEXT          NOT NULL,
@@ -90,13 +105,19 @@ CREATE TABLE message (
     is_read         BOOLEAN       NOT NULL DEFAULT FALSE,
     PRIMARY KEY (id),
     KEY idx_message_user_id (user_id),
+    KEY idx_message_conversation_id (conversation_id),
+    KEY idx_message_unread (is_read, role),
     CONSTRAINT fk_message_user
         FOREIGN KEY (user_id) REFERENCES account(id)
+        ON UPDATE CASCADE
+        ON DELETE RESTRICT,
+    CONSTRAINT fk_message_conversation
+        FOREIGN KEY (conversation_id) REFERENCES conversation(id)
         ON UPDATE CASCADE
         ON DELETE RESTRICT
 );
 
--- 6. ORDER_ITEM
+-- 7. ORDER_ITEM
 CREATE TABLE order_item (
     id         INT           NOT NULL AUTO_INCREMENT,
     order_id   INT           NOT NULL,
@@ -117,7 +138,7 @@ CREATE TABLE order_item (
         ON DELETE RESTRICT
 );
 
--- 7. REPORT_CONTENT
+-- 8. REPORT_CONTENT
 CREATE TABLE report_content (
     id         INT           NOT NULL AUTO_INCREMENT,
     report_id  INT           NOT NULL,
@@ -138,7 +159,7 @@ CREATE TABLE report_content (
         ON DELETE RESTRICT
 );
 
--- 8. LIKED_ITEM
+-- 9. LIKED_ITEM
 CREATE TABLE liked_item (
     id           INT           NOT NULL AUTO_INCREMENT,
     customer_id  CHAR(36)      NOT NULL,
