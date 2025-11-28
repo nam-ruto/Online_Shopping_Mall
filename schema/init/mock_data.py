@@ -154,7 +154,22 @@ def seed_from_csvs(host: str, port: int, database: str, user: str, password: str
             order_item_values,
         )
 
-        # 5) message
+        # 5) conversation
+        conversation_rows = read_csv_rows(data_dir / "conversation.csv")
+        conversation_values: List[Tuple] = []
+        for r in conversation_rows:
+            conversation_values.append((
+                int(r["id"]),
+                r["customer_id"],
+                r["subject"],
+            ))
+        cursor.executemany(
+            "INSERT INTO conversation (id, customer_id, subject) "
+            "VALUES (%s,%s,%s)",
+            conversation_values,
+        )
+
+        # 6) message
         message_rows = read_csv_rows(data_dir / "message.csv")
         message_values: List[Tuple] = []
         for r in message_rows:
@@ -172,7 +187,7 @@ def seed_from_csvs(host: str, port: int, database: str, user: str, password: str
             message_values,
         )
 
-        # 6) report
+        # 7) report
         report_rows = read_csv_rows(data_dir / "report.csv")
         report_values: List[Tuple] = []
         for r in report_rows:
@@ -190,7 +205,7 @@ def seed_from_csvs(host: str, port: int, database: str, user: str, password: str
             report_values,
         )
 
-        # 7) report_content
+        # 8) report_content
         rc_rows = read_csv_rows(data_dir / "report_content.csv")
         rc_values: List[Tuple] = []
         for r in rc_rows:
