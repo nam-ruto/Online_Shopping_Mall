@@ -68,22 +68,30 @@ INSERT INTO order_item (
 (4, 2, 4, 1, 129.99, 129.99);
 
 -- ================
--- 5. MESSAGES (simple customer–staff chat)
+-- 5. CONVERSATIONS
+-- ================
+INSERT INTO conversation (
+    id, customer_id, subject
+) VALUES
+(1, '11111111-1111-1111-1111-111111111111', 'Order #1 address change');
+
+-- ================
+-- 6. MESSAGES (simple customer–staff chat)
 -- ================
 INSERT INTO message (
     id, conversation_id, user_id, role, content, is_read
 ) VALUES
-(1, 1, '11111111-1111-1111-1111-111111111111', 'customer',
+(1, 1, '11111111-1111-1111-1111-111111111111', 'Customer',
  'Hi, can I change the shipping address for my order?', 0),
 
-(2, 1, '33333333-3333-3333-3333-333333333333', 'staff',
+(2, 1, '33333333-3333-3333-3333-333333333333', 'Staff',
  'Sure! Please send me the new address and I will update it.', 0),
 
-(3, 1, '11111111-1111-1111-1111-111111111111', 'customer',
+(3, 1, '11111111-1111-1111-1111-111111111111', 'Customer',
  'New address is 789 New Street, Troy, AL 36082.', 0);
 
 -- ================
--- 6. REPORT (Daily sales report)
+-- 7. REPORT (Daily sales report)
 -- Total sold quantity: 2 + 1 + 1 + 1 = 5
 -- Total revenue: 51.98 + 19.99 + 79.99 + 129.99 = 281.95
 -- ================
@@ -93,7 +101,7 @@ INSERT INTO report (
 (1, 'Daily', '2025-11-15 00:00:00', '2025-11-15 23:59:59', 5, 281.95);
 
 -- ================
--- 7. REPORT CONTENT (per-item breakdown for that report)
+-- 8. REPORT CONTENT (per-item breakdown for that report)
 -- ================
 INSERT INTO report_content (
     id, report_id, item_id, item_sold, unit_price, sub_total
