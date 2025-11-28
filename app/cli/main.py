@@ -5,6 +5,9 @@ from typing import Callable, Dict
 from app.models import Role
 from app.services.auth_service import AuthService
 from app.cli import ui
+from app.cli.customer_cli import customer_portal
+from app.cli.staff_cli import staff_portal
+from app.cli.ceo_cli import ceo_portal
 
 
 def _input(prompt: str) -> str:
@@ -24,7 +27,7 @@ def main() -> None:
         elif choice == "Login":
             acc = _handle_login(auth)
             if acc:
-                _route_by_role(acc.role)
+                _route_by_role(acc)
                 _idle_wait()
                 return
         elif choice == "Exit":
@@ -86,16 +89,15 @@ def _handle_login(auth: AuthService):
     return result.account
 
 
-def _route_by_role(role: Role) -> None:
-    if role == Role.CUSTOMER:
-        ui.banner("Customer", "\n[Customer menu placeholder] Browse items, Likes, Cart, etc. are in development.")
-    elif role == Role.STAFF:
-        ui.banner("Staff", "\n[Staff menu placeholder] Inventory management, Respond to messages... are in development.")
-    elif role == Role.CEO:
-        ui.banner("CEO", "\n[CEO menu placeholder] View reports and analytics... are in development.")
+def _route_by_role(account) -> None:
+    if account.role == Role.CUSTOMER:
+        customer_portal(account)
+    elif account.role == Role.STAFF:
+        staff_portal(account)
+    elif account.role == Role.CEO:
+        ceo_portal(account)
     else:
         ui.err("\n[Unknown role]")
-
 
 def _idle_wait() -> None:
     while True:
