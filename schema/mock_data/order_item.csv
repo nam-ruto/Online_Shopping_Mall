@@ -1,6 +1,6 @@
-id,order_id,item_id,quantity,unit_price,sub_total
-1,1,1,2,25.99,51.98
-2,1,3,1,19.99,19.99
-3,2,2,1,79.99,79.99
-4,2,4,1,129.99,129.99
+id,order_id,item_id,item_name,item_description,item_category,quantity,unit_price,sub_total
+1,1,1,Wireless Mouse,"Ergonomic 2.4G wireless mouse with USB receiver",Electronics,2,25.99,51.98
+2,1,3,USB-C Charger,"45W fast-charging USB-C wall adapter",Accessories,1,19.99,19.99
+3,2,2,Mechanical Keyboard,"RGB mechanical keyboard with blue switches",Electronics,1,79.99,79.99
+4,2,4,Noise Cancelling Headphones,"Over-ear Bluetooth headphones with active noise cancelling",Electronics,1,129.99,129.99
 

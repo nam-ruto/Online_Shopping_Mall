@@ -119,12 +119,15 @@ CREATE TABLE message (
 
 -- 7. ORDER_ITEM
 CREATE TABLE order_item (
-    id         INT           NOT NULL AUTO_INCREMENT,
-    order_id   INT           NOT NULL,
-    item_id    INT           NOT NULL,
-    quantity   INT           NOT NULL,
-    unit_price DECIMAL(10,2) NOT NULL,
-    sub_total  DECIMAL(10,2) NOT NULL,
+    id               INT           NOT NULL AUTO_INCREMENT,
+    order_id         INT           NOT NULL,
+    item_id          INT           NULL,
+    item_name        VARCHAR(100)  NOT NULL,
+    item_description VARCHAR(250)  NULL,
+    item_category    VARCHAR(100)  NULL,
+    quantity         INT           NOT NULL,
+    unit_price       DECIMAL(10,2) NOT NULL,
+    sub_total        DECIMAL(10,2) NOT NULL,
     PRIMARY KEY (id),
     KEY idx_order_item_order_id (order_id),
     KEY idx_order_item_item_id (item_id),
@@ -135,7 +138,7 @@ CREATE TABLE order_item (
     CONSTRAINT fk_order_item_item
         FOREIGN KEY (item_id) REFERENCES item(id)
         ON UPDATE CASCADE
-        ON DELETE RESTRICT
+        ON DELETE SET NULL
 );
 
 -- 8. REPORT_CONTENT
