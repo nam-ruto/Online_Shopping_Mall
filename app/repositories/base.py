@@ -55,4 +55,6 @@ def insert_from_dataclass(table: str, data: Any, include: Optional[set[str]] = N
     sql = f"INSERT INTO {table} ({columns}) VALUES ({placeholders})"
     execute(sql, list(row.values()))
 
-
+def delete_from_dataclass(table: str, id: int | str) -> None:
+    sql = f"DELETE FROM {table} WHERE id={id}"
+    execute(sql)

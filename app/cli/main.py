@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Callable, Dict
 
 from app.models import Role
+from app.repositories.item_repository import ItemRepository
 from app.services.auth_service import AuthService
 from app.cli import ui
 from app.cli.customer_cli import customer_portal
@@ -105,5 +106,3 @@ def _idle_wait() -> None:
         if cmd == "q":
             ui.ok("Goodbye!")
             return
-
-

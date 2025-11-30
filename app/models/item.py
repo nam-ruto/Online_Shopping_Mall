@@ -8,7 +8,7 @@ class Item:
     # DB: INT AUTO_INCREMENT
     id: Optional[int] = None
     name: str = ""
-    description: str = ""
+    description: Optional[str] = None
     category: Optional[str] = None
     price: Decimal = field(default_factory=lambda: Decimal("0.00"))
     stock_quantity: int = 0
@@ -45,5 +45,3 @@ class Item:
         if self.like_count == 0:
             return
         self.like_count -= 1
-
-
