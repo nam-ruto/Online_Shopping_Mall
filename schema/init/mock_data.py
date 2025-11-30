@@ -143,14 +143,17 @@ def seed_from_csvs(host: str, port: int, database: str, user: str, password: str
             order_item_values.append((
                 int(r["id"]),
                 int(r["order_id"]),
-                int(r["item_id"]),
+                int(r["item_id"]) if r["item_id"] else None,
+                r["item_name"],
+                r["item_description"] or None,
+                r["item_category"] or None,
                 int(r["quantity"]),
                 float(r["unit_price"]),
                 float(r["sub_total"]),
             ))
         cursor.executemany(
-            "INSERT INTO order_item (id, order_id, item_id, quantity, unit_price, sub_total) "
-            "VALUES (%s,%s,%s,%s,%s,%s)",
+            "INSERT INTO order_item (id, order_id, item_id, item_name, item_description, item_category, quantity, unit_price, sub_total) "
+            "VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)",
             order_item_values,
         )
 
