@@ -1,6 +1,10 @@
 from __future__ import annotations
+from decimal import Decimal
 
 from app.cli import ui
+from app.models.item import Item
+from app.repositories.item_repository import ItemRepository
+from app.services.item_service import ItemService
 from app.services.messaging_service import MessagingService
 
 
@@ -11,7 +15,9 @@ def staff_portal(account) -> None:
             "Choose an option",
             ["Manage Inventory", "Check Customer Information", "Customer Support", "Logout"],
         )
-        if choice == "Customer Support":
+        if choice == "Manage Inventory":
+            _staff_inventory_portal()
+        elif choice == "Customer Support":
             _staff_messaging_portal(account)
         elif choice == "Logout":
             ui.ok("Log out successful!")
@@ -19,6 +25,85 @@ def staff_portal(account) -> None:
         else:
             ui.banner(choice, f"{choice} is in development.")
             ui.wait_continue()
+
+def _staff_inventory_portal() -> None:
+    item_service = ItemService()
+    while True:
+        choice = ui.menu_select(
+            "Inventory Portal",
+            "Choose an action",
+            ["List all items", "Add a new item", "Delete an existing item", "Update an existing item", "Quit"]
+        )
+        if choice == "List all items":
+            items = ItemRepository.list()
+            if not items:
+                ui.err("Could not load item list, or there are no items in the list.")
+            else:
+                for item in items:
+                    ui.ok(item)
+            ui.wait_continue()
+        elif choice == "Add a new item":
+            _handle_new_item(item_service)
+        elif choice == "Delete an existing item":
+            _handle_delete_item(item_service)
+        elif choice == "Quit":
+            return
+        else:
+            ui.banner(choice, f"{choice} is in development.")
+            ui.wait_continue()
+
+def _handle_new_item(item_service: ItemService):
+    ui.clear()
+    ui.banner("Inventory", "Create a new item")
+
+    name = ui.text("Name:")
+    description = ui.text("(optional) Description:")
+    category = ui.text("(optional) Category:")
+    try:
+        price = Decimal(ui.text("Price:"))
+    except:
+        ui.err("Invalid input: price must be a real number.")
+        ui.wait_continue()
+        return
+    try:
+        stock_quantity = int(ui.text("Stock quantity:"))
+    except:
+        ui.err("Invalid input: stock quantity must be a whole number.")
+        ui.wait_continue()
+        return
+
+    result = item_service.create_item(name, price, stock_quantity, description, category)
+    if result.success:
+        ui.ok(result.message)
+        ui.wait_continue()
+    else:
+        ui.err(result.message)
+        ui.wait_continue()
+
+def _handle_delete_item(item_service: ItemService):
+    ui.clear()
+    ui.banner("Inventory", "Delete an existing item")
+
+    id = int(ui.text("Item ID:"))
+    item = ItemRepository.get_by_id(id)
+    if not item:
+        ui.err("No item exists with that ID.")
+        return
+
+    ui.ok(item)
+
+    cmd = ui.text("Are you sure you want to delete this item? Type 'confirm' to confirm.").strip().lower()
+    if cmd != "confirm":
+        ui.info("Not confirmed. Backing out.")
+        return
+
+    result = item_service.delete_item(id)
+    if result.success:
+        ui.ok(result.message)
+        ui.wait_continue()
+    else:
+        ui.err(result.message)
+        ui.wait_continue()
 
 
 def _staff_messaging_portal(account) -> None:
@@ -120,5 +205,3 @@ def _chat_repl(svc: MessagingService, account, conversation_id: int, as_staff: b
         except Exception as e:
             ui.err(str(e))
             ui.wait_continue()
-
-

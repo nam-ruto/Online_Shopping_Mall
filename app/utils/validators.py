@@ -22,5 +22,3 @@ def ensure_length_max(value: str, field: str, max_len: int) -> str:
     if len(value) > max_len:
         raise ValueError(f"{field} must be at most {max_len} characters")
     return value
-
-

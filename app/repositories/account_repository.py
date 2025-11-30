@@ -71,5 +71,3 @@ class AccountRepository:
             (email,),
         )
         return _row_to_account(row) if row else None
-
-
