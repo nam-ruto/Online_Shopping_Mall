@@ -1,5 +1,6 @@
 
 -- Drop tables in dependency order (optional, for re-runs)
+DROP TABLE IF EXISTS liked_item;
 DROP TABLE IF EXISTS report_content;
 DROP TABLE IF EXISTS order_item;
 DROP TABLE IF EXISTS message;
@@ -131,10 +132,6 @@ CREATE TABLE order_item (
     CONSTRAINT fk_order_item_order
         FOREIGN KEY (order_id) REFERENCES `order`(id)
         ON UPDATE CASCADE
-        ON DELETE RESTRICT,
-    CONSTRAINT fk_order_item_item
-        FOREIGN KEY (item_id) REFERENCES item(id)
-        ON UPDATE CASCADE
         ON DELETE RESTRICT
 );
 
@@ -175,5 +172,5 @@ CREATE TABLE liked_item (
     CONSTRAINT fk_liked_item_item
         FOREIGN KEY (item_id) REFERENCES item(id)
         ON UPDATE CASCADE
-        ON DELETE RESTRICT
+        ON DELETE CASCADE
 );
