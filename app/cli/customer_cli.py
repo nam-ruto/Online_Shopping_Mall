@@ -8,7 +8,7 @@ from app.services.cart_service import CartService
 from app.services.like_service import LikeService
 from app.services.order_service import OrderService
 from app.services.account_service import AccountService
-from app.utils.validators import ensure_length_max, ensure_non_empty, ensure_email, ensure_phone_number
+from app.utils.validators import ensure_length_max, ensure_non_empty, ensure_email, ensure_phone_number, ensure_card_number
 from rich.table import Table
 from app.cli.ui import console
 from app.services.item_service import ItemService
@@ -196,6 +196,12 @@ def _shopping_cart(account) -> None:
             # Payment method
             method = ui.select("Payment method", ["Credit", "Debit"])
             card = ui.text("Enter card number (mock):")
+            try:
+                card = ensure_card_number(card)
+            except ValueError as ve:
+                ui.err(str(ve))
+                ui.wait_continue()
+                continue
             name = ui.text("Name on card:")
             confirm = ui.text("Confirm payment? (Y/N):").strip().lower()
             if confirm != "y":

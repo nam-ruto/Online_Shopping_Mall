@@ -30,3 +30,24 @@ def ensure_length_max(value: str, field: str, max_len: int) -> str:
     if len(value) > max_len:
         raise ValueError(f"{field} must be at most {max_len} characters")
     return value
+
+def ensure_card_number(value: str) -> str:
+    value = ensure_non_empty(value, "card number")
+    # Keep only digits
+    digits = re.sub(r"[^\d]", "", value)
+    # Typical PAN lengths range 13-19
+    if len(digits) < 13 or len(digits) > 19:
+        raise ValueError("card number is not valid")
+    # Luhn checksum
+    total = 0
+    reverse_digits = digits[::-1]
+    for idx, ch in enumerate(reverse_digits):
+        d = ord(ch) - ord("0")
+        if idx % 2 == 1:
+            d *= 2
+            if d > 9:
+                d -= 9
+        total += d
+    if total % 10 != 0:
+        raise ValueError("card number is not valid")
+    return digits
