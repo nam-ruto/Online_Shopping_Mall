@@ -115,9 +115,9 @@ def _handle_update_item(item_service: ItemService):
     ui.banner("Inventory", "Update an existing item")
 
     try:
-        id = int(ui.text(f"Order ID:"))
+        id = int(ui.text(f"Item ID:"))
     except:
-        ui.err("Invalid input: order ID must be a whole number.")
+        ui.err("Invalid input: item ID must be a whole number.")
         ui.wait_continue()
         return
     item = item_service.get_by_id(id)
