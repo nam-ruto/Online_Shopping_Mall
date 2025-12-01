@@ -28,7 +28,7 @@ def customer_portal(account: Account) -> None:
             [
                 "Browse Catalog (View Items)",
                 "My Shopping Cart",
-                "My Order",
+                "My Orders",
                 "My Liked Items",
                 "Update Profile",
                 "Message Support",
