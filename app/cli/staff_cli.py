@@ -8,6 +8,7 @@ from app.repositories.item_repository import ItemRepository
 from app.services.item_service import ItemService
 from app.services.messaging_service import MessagingService
 from app.services.order_service import OrderService
+from rich.table import Table
 
 
 def staff_portal(account) -> None:
@@ -43,8 +44,7 @@ def _staff_inventory_portal() -> None:
             if not items:
                 ui.err("Could not load item list, or there are no items in the list.")
             else:
-                for item in items:
-                    ui.ok(item)
+                _render_items_table(items, title="All Items")
             ui.wait_continue()
         elif choice == "Add a new item":
             _handle_new_item(item_service)
@@ -96,7 +96,7 @@ def _handle_delete_item(item_service: ItemService):
         ui.err("No item exists with that ID.")
         return
 
-    ui.ok(item)
+    _render_items_table([item], title="Item Preview")
 
     cmd = ui.text("Are you sure you want to delete this item? Type 'confirm' to confirm.").strip().lower()
     if cmd != "confirm":
@@ -125,7 +125,7 @@ def _handle_update_item(item_service: ItemService):
     if not item:
         ui.err("No item exists with that ID.")
         return
-    ui.ok(item)
+    _render_items_table([item], title="Current Item")
 
     ui.info("Enter a blank input for fields you do not wish to change.")
 
@@ -187,8 +187,7 @@ def _handle_search_customer() -> None:
 
     rows = AccountRepository.get_by_name_or_id(first_name if first_name != "" else None, last_name if last_name != "" else None, id if id != "" else None)
     if rows:
-        for row in rows:
-            ui.ok(row)
+        _render_accounts_table(rows, title="Customer Search Results")
     else:
         ui.err("No customers by that criteria were found.")
     ui.wait_continue()
@@ -206,7 +205,7 @@ def _handle_search_order() -> None:
 
     order = order_service.get_by_id(id)
     if order:
-        ui.ok(order)
+        _render_order_table(order, title=f"Order #{id}")
     else:
         ui.err("No order exists with that ID.")
     ui.wait_continue()
@@ -310,3 +309,104 @@ def _chat_repl(svc: MessagingService, account, conversation_id: int, as_staff: b
         except Exception as e:
             ui.err(str(e))
             ui.wait_continue()
+
+
+def _render_items_table(items: list[Item], title: str = "Items") -> None:
+    table = Table(title=title, expand=True)
+    table.add_column("ID", justify="right")
+    table.add_column("Name")
+    table.add_column("Category")
+    table.add_column("Price", justify="right")
+    table.add_column("Stock", justify="right")
+    table.add_column("Likes", justify="right")
+    table.add_column("Description")
+    for it in items:
+        table.add_row(
+            str(it.id if it.id is not None else ""),
+            it.name or "",
+            (it.category or ""),
+            str(it.price),
+            str(it.stock_quantity),
+            str(it.like_count),
+            (it.description or ""),
+        )
+    ui.console.print(table)
+
+
+def _render_accounts_table(accounts, title: str = "Customers") -> None:
+    # Exclude: id, password, salt, created_at, updated_at
+    table = Table(title=title, expand=True)
+    table.add_column("Username")
+    table.add_column("First Name")
+    table.add_column("Last Name")
+    table.add_column("Email")
+    table.add_column("Phone")
+    table.add_column("City")
+    table.add_column("State")
+    table.add_column("Country")
+    table.add_column("Address")
+    table.add_column("Zip")
+    for acc in accounts:
+        table.add_row(
+            acc.user_name or "",
+            acc.first_name or "",
+            acc.last_name or "",
+            acc.email or "",
+            acc.phone or "",
+            acc.city or "",
+            acc.state or "",
+            acc.country or "",
+            acc.address_line or "",
+            acc.zip_code or "",
+        )
+    ui.console.print(table)
+
+
+def _render_order_table(order_row, title: str = "Order") -> None:
+    # order_row is a dict from repository; filter out unnecessary fields
+    table = Table(title=title, expand=True, show_header=True)
+    table.add_column("ID", justify="right")
+    table.add_column("Customer ID")
+    table.add_column("State")
+    table.add_column("City")
+    table.add_column("Address")
+    table.add_column("Total", justify="right")
+    table.add_column("Status")
+    table.add_column("Payment")
+    table.add_column("Order Date")
+
+    # Support both dict and dataclass-like objects just in case
+    if isinstance(order_row, dict):
+        oid = order_row.get("id")
+        customer_id = order_row.get("customer_id")
+        to_state = order_row.get("to_state")
+        to_city = order_row.get("to_city")
+        to_addr = order_row.get("to_address_line")
+        total = order_row.get("total_amount")
+        status = order_row.get("status")
+        payment = order_row.get("payment_method")
+        order_date = order_row.get("order_date")
+    else:
+        # Fallback attribute access
+        oid = getattr(order_row, "id", "")
+        customer_id = getattr(order_row, "customer_id", "")
+        to_state = getattr(order_row, "to_state", "")
+        to_city = getattr(order_row, "to_city", "")
+        to_addr = getattr(order_row, "to_address_line", "")
+        total = getattr(order_row, "total_amount", "")
+        status = getattr(order_row, "status", "")
+        payment = getattr(order_row, "payment_method", "")
+        order_date = getattr(order_row, "order_date", "")
+
+    table.add_row(
+        str(oid or ""),
+        str(customer_id or ""),
+        str(to_state or ""),
+        str(to_city or ""),
+        str(to_addr or ""),
+        str(total or ""),
+        str(status or ""),
+        str(payment or ""),
+        str(order_date or ""),
+    )
+    ui.console.print(table)
