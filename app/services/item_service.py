@@ -46,3 +46,7 @@ class ItemService:
     def delete_item(self, id: int) -> ItemResult:
         ItemRepository.delete(id)
         return ItemResult(True, "Item deletion successful")
+
+    def update_item(self, id: int, item: Item) -> ItemResult:
+        ItemRepository.update(id, item)
+        return ItemResult(True, "Item update successful")

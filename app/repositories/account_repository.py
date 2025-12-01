@@ -81,6 +81,33 @@ class AccountRepository:
         return _row_to_account(row) if row else None
 
     @staticmethod
+    def get_by_name_or_id(first_name: str | None, last_name: str | None, id: str | None) -> Optional[list[Account]]:
+        if first_name is None and last_name is None and id is None:
+            return None
+
+        sql = f"SELECT * FROM {AccountRepository.TABLE} WHERE ("
+
+        if first_name is not None:
+            sql += f"first_name LIKE '%{first_name}%'"
+
+        if last_name is not None:
+            if first_name is not None:
+                sql += f" OR last_name LIKE '%{last_name}%'"
+            else:
+                sql += f"last_name LIKE '%{last_name}%'"
+
+        if id is not None:
+            if first_name is not None or last_name is not None:
+                sql += f" OR id LIKE '%{id}%'"
+            else:
+                sql += f"id LIKE '%{id}%'"
+
+        sql += f") AND role = \"Customer\""
+
+        rows = base.fetch_all(sql)
+        return [_row_to_account(row) for row in rows] if rows else None
+
+    @staticmethod
     def update_address(
         acc_id: str,
         country: Optional[str],

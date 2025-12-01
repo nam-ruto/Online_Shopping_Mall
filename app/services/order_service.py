@@ -4,9 +4,9 @@ from decimal import Decimal
 from typing import Dict, Iterable, List, Optional
 
 from app.models import PaymentMethod, OrderStatus
+from app.models.order import Order
 from app.repositories.item_repository import ItemRepository
 from app.repositories.order_repository import OrderRepository
-
 
 class OrderService:
     def place_order(
@@ -57,4 +57,5 @@ class OrderService:
     def list_orders(self, customer_id: str) -> list[dict]:
         return OrderRepository.list_orders_by_customer(customer_id)
 
-
+    def get_by_id(self, order_id: id) -> Optional[Order]:
+        return OrderRepository.get_by_id(order_id)

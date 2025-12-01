@@ -3,9 +3,11 @@ from decimal import Decimal
 
 from app.cli import ui
 from app.models.item import Item
+from app.repositories.account_repository import AccountRepository
 from app.repositories.item_repository import ItemRepository
 from app.services.item_service import ItemService
 from app.services.messaging_service import MessagingService
+from app.services.order_service import OrderService
 
 
 def staff_portal(account) -> None:
@@ -17,6 +19,8 @@ def staff_portal(account) -> None:
         )
         if choice == "Manage Inventory":
             _staff_inventory_portal()
+        elif choice == "Check Customer Information":
+            _staff_customer_info_portal()
         elif choice == "Customer Support":
             _staff_messaging_portal(account)
         elif choice == "Logout":
@@ -46,6 +50,8 @@ def _staff_inventory_portal() -> None:
             _handle_new_item(item_service)
         elif choice == "Delete an existing item":
             _handle_delete_item(item_service)
+        elif choice == "Update an existing item":
+            _handle_update_item(item_service)
         elif choice == "Quit":
             return
         else:
@@ -105,6 +111,105 @@ def _handle_delete_item(item_service: ItemService):
         ui.err(result.message)
         ui.wait_continue()
 
+def _handle_update_item(item_service: ItemService):
+    ui.clear()
+    ui.banner("Inventory", "Update an existing item")
+
+    try:
+        id = int(ui.text(f"Order ID:"))
+    except:
+        ui.err("Invalid input: order ID must be a whole number.")
+        ui.wait_continue()
+        return
+    item = ItemRepository.get_by_id(id)
+    if not item:
+        ui.err("No item exists with that ID.")
+        return
+    ui.ok(item)
+
+    ui.info("Enter a blank input for fields you do not wish to change.")
+
+    name = ui.text(f"Name [\"{item.name}\"]:")
+    description = ui.text(f"Description [{f"\"{item.description}\"" if item.description else "none"}]:")
+    category = ui.text(f"Category [{f"\"{item.category}\"" if item.category else "none"}]:")
+    try:
+        price = Decimal(ui.text(f"Price [{item.price}]:"))
+    except:
+        ui.err("Invalid input: price must be a real number.")
+        ui.wait_continue()
+        return
+    try:
+        stock_quantity = int(ui.text(f"Stock quantity [{item.stock_quantity}]:"))
+    except:
+        ui.err("Invalid input: stock quantity must be a whole number.")
+        ui.wait_continue()
+        return
+
+    updated_item = Item(
+        id=item.id,
+        name=name if name != "" else item.name,
+        description=description if description != "" else item.description,
+        category=category if category != "" else item.category,
+        price=price if price != 0 else item.price,
+        stock_quantity=stock_quantity if stock_quantity != 0 else item.stock_quantity,
+        like_count=item.like_count,
+    )
+
+    result = item_service.update_item(id, updated_item)
+    if result.success:
+        ui.ok(result.message)
+        ui.wait_continue()
+    else:
+        ui.err(result.message)
+        ui.wait_continue()
+
+def _staff_customer_info_portal() -> None:
+    while True:
+        choice = ui.menu_select(
+            "Customer Information",
+            "Choose an action",
+            ["Search customer", "Search order", "Quit"]
+        )
+        if choice == "Search customer":
+            _handle_search_customer()
+        elif choice == "Search order":
+            _handle_search_order()
+        elif choice == "Quit":
+            return
+        else:
+            ui.banner(choice, f"{choice} is in development.")
+            ui.wait_continue()
+
+def _handle_search_customer() -> None:
+    first_name = ui.text("(optional) First name:")
+    last_name = ui.text("(optional) Last name:")
+    id = ui.text(f"(optional) Customer ID:")
+
+    rows = AccountRepository.get_by_name_or_id(first_name if first_name != "" else None, last_name if last_name != "" else None, id if id != "" else None)
+    if rows:
+        for row in rows:
+            ui.ok(row)
+    else:
+        ui.err("No customers by that criteria were found.")
+    ui.wait_continue()
+    return
+
+def _handle_search_order() -> None:
+    order_service = OrderService()
+
+    try:
+        id = int(ui.text(f"Order ID:"))
+    except:
+        ui.err("Invalid input: order ID must be a whole number.")
+        ui.wait_continue()
+        return
+
+    order = order_service.get_by_id(id)
+    if order:
+        ui.ok(order)
+    else:
+        ui.err("No order exists with that ID.")
+    ui.wait_continue()
 
 def _staff_messaging_portal(account) -> None:
     svc = MessagingService()
