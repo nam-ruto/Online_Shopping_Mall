@@ -62,7 +62,7 @@ def _browse_catalog(account) -> None:
     for it in items:
         table.add_row(str(it.id), it.name or "", it.category or "", f"${it.price}", str(it.stock_quantity), str(it.like_count))
     console.print(table)
-    action = ui.select("Choose an action", ["Add items to cart", "Like items", "Back"])
+    action = ui.select("Choose an action", ["Add items to cart", "View items", "Like items", "Back"])
     if action == "Add items to cart":
         while True:
             raw = ui.text("Item ID to add (or /quit):").strip()
@@ -89,6 +89,32 @@ def _browse_catalog(account) -> None:
                 continue
             _cart.add_item(account.id, iid, qty)
             ui.ok(f"Added item {iid} x{qty} to cart.")
+        # ui.wait_continue()
+    elif action == "View items":
+        while True:
+            raw = ui.text("Item ID to view (or /quit):").strip()
+            if raw == "/quit" or not raw:
+                break
+            if not raw.isdigit():
+                ui.err("Please enter a valid numeric item ID.")
+                continue
+            iid = int(raw)
+            item = _items.get_by_id(iid)
+            if item is None:
+                ui.err(f"Item {iid} does not exist.")
+                continue
+
+            item_table = Table(title="Item", show_lines=True)
+            item_table.add_column("Name")
+            item_table.add_column("Description")
+            item_table.add_column("Category")
+            item_table.add_column("Price")
+            item_table.add_column("Stock")
+            item_table.add_column("Likes")
+
+            item_table.add_row(item.name, item.description or "[none]", item.category or "[none]", f"${item.price}", str(item.stock_quantity), str(item.like_count))
+            console.print(item_table)
+            item_table.rows = []
         # ui.wait_continue()
     elif action == "Like items":
         while True:
@@ -460,5 +486,3 @@ def _chat_repl(svc: MessagingService, account, conversation_id: int, as_staff: b
         except Exception as e:
             ui.err(str(e))
             ui.wait_continue()
-
-
