@@ -280,7 +280,8 @@ def _update_profile(account: Account) -> None:
     ]
     _print_profile_table(fields)
     while True:
-        choices = [f[0] for f in fields] + ["Done"]
+        # "Field: current_value"
+        choices = [f"{f[0]}: {f[2] or ''}" for f in fields] + ["Done"]
         choice = ui.select("Select a field to update", choices)
         if choice == "Done":
             return
