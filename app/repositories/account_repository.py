@@ -71,3 +71,42 @@ class AccountRepository:
             (email,),
         )
         return _row_to_account(row) if row else None
+
+    @staticmethod
+    def get_by_id(acc_id: str) -> Optional[Account]:
+        row = base.fetch_one(
+            f"SELECT * FROM {AccountRepository.TABLE} WHERE id=%s",
+            (acc_id,),
+        )
+        return _row_to_account(row) if row else None
+
+    @staticmethod
+    def update_address(
+        acc_id: str,
+        country: Optional[str],
+        state: Optional[str],
+        city: Optional[str],
+        address_line: Optional[str],
+        zip_code: Optional[str],
+        phone: Optional[str],
+    ) -> None:
+        sql = (
+            f"UPDATE {AccountRepository.TABLE} SET "
+            "country=%s, state=%s, city=%s, address_line=%s, zip_code=%s, phone=%s "
+            "WHERE id=%s"
+        )
+        base.execute(sql, (country, state, city, address_line, zip_code, phone, acc_id))
+
+    @staticmethod
+    def update_basic(
+        acc_id: str,
+        first_name: Optional[str],
+        last_name: Optional[str],
+        email: Optional[str],
+    ) -> None:
+        sql = (
+            f"UPDATE {AccountRepository.TABLE} SET "
+            "first_name=%s, last_name=%s, email=%s "
+            "WHERE id=%s"
+        )
+        base.execute(sql, (first_name, last_name, email, acc_id))
