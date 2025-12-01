@@ -301,6 +301,17 @@ def _update_profile(account: Account) -> None:
                     except ValueError as ve:
                         ui.err(str(ve))
                         break
+                elif key == "user_name":
+                    try:
+                        new_val = ensure_length_max(new_val, label.lower().replace(" ", "_"), 100)
+                    except ValueError as ve:
+                        ui.err(str(ve))
+                        break
+                    # Enforce uniqueness of user_name
+                    existing = AccountService.get_by_username(new_val)
+                    if existing and existing.id != account.id:
+                        ui.err("user_name is already taken. Please choose another.")
+                        break
                 else:
                     try:
                         new_val = ensure_length_max(new_val, label.lower().replace(" ", "_"), 100)
