@@ -23,6 +23,8 @@ class Account:
     address_line: Optional[str] = None
     zip_code: Optional[str] = None
     phone: Optional[str] = None
+    password_reset_token: Optional[str] = None
+    password_reset_token_expiration: Optional[datetime] = None
     created_at: datetime = field(default_factory=datetime.utcnow)
     updated_at: datetime = field(default_factory=datetime.utcnow)
 

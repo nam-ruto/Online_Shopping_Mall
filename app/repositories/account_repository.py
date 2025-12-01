@@ -22,6 +22,8 @@ def _row_to_account(row: dict) -> Account:
         address_line=row.get("address_line"),
         zip_code=row.get("zip_code"),
         phone=row.get("phone"),
+        password_reset_token=row.get("password_reset_token"),
+        password_reset_token_expiration=row.get("password_reset_token_expiration"),
         created_at=row["created_at"],
         updated_at=row["updated_at"],
     )
@@ -51,6 +53,8 @@ class AccountRepository:
                 "address_line",
                 "zip_code",
                 "phone",
+                "password_reset_token",
+                "password_reset_token_expiration",
                 "created_at",
                 "updated_at",
             },
@@ -110,3 +114,34 @@ class AccountRepository:
             "WHERE id=%s"
         )
         base.execute(sql, (first_name, last_name, email, acc_id))
+
+    @staticmethod
+    def update(account: Account) -> None:
+        sql = (
+            f"UPDATE {AccountRepository.TABLE} SET "
+            "user_name=%s, password=%s, salt=%s, first_name=%s, last_name=%s, role=%s, "
+            "email=%s, country=%s, state=%s, city=%s, address_line=%s, zip_code=%s, phone=%s, "
+            "password_reset_token=%s, password_reset_token_expiration=%s "
+            "WHERE id=%s"
+        )
+        base.execute(
+            sql,
+            (
+                account.user_name,
+                account.password,
+                account.salt,
+                account.first_name,
+                account.last_name,
+                account.role.value,
+                account.email,
+                account.country,
+                account.state,
+                account.city,
+                account.address_line,
+                account.zip_code,
+                account.phone,
+                account.password_reset_token,
+                account.password_reset_token_expiration,
+                account.id,
+            ),
+        )

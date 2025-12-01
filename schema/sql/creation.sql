@@ -26,6 +26,8 @@ CREATE TABLE account (
     address_line   VARCHAR(50),
     zip_code       VARCHAR(10),
     phone          VARCHAR(10),
+    password_reset_token VARCHAR(6),
+    password_reset_token_expiration      DATETIME,
     created_at     DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at     DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (id),

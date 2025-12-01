@@ -97,11 +97,34 @@ def _handle_login(auth: AuthService):
         if choice == "Try Again":
             return _handle_login(auth)
         elif choice == "Reset Password":
-            ui.info("Password reset is not implemented yet. Please contact support.")
+            reset_email = ui.text("Enter your registered email for password reset:")
+            reset_result = auth.password_reset_initiate(reset_email)
+            if reset_result.success:
+                ui.ok(reset_result.message)
+                ui.info("Please check your email for the reset code.")
+                reset_code = ui.text("Enter the password reset code sent to your email:")
+                reset_result = auth.password_reset_verify(reset_email, reset_code)
+                if reset_result.success:
+                    while True:
+                        new_password = ui.password("Enter your new password:")
+                        new_password2 = ui.password("Retype your new password:")
+                        if new_password != new_password2:
+                            ui.err("Passwords do not match. Please try again!")
+                        else:
+                            break
+                    reset_result = auth.reset_password(reset_email, new_password)
+                    if reset_result.success:
+                        ui.ok(reset_result.message)
+                    else:
+                        ui.err(reset_result.message)
+                else:
+                    ui.err(reset_result.message)
+            else:
+                ui.err(reset_result.message)
             # Exit to main menu
         else:
             pass # Exit to main menu
-    
+
     return result.account
 
 
