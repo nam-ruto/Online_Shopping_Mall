@@ -5,6 +5,7 @@ from datetime import datetime, date
 from app.cli import ui
 from app.models import ReportType
 from app.services.report_service import ReportService
+from app.cli.staff_cli import _update_profile as _staff_update_profile
 from app.cli.ui import console
 from rich.table import Table
 
@@ -15,12 +16,14 @@ def ceo_portal(account) -> None:
         choice = ui.menu_select(
             "CEO Portal",
             "Choose an option",
-            ["View existing reports", "Generate new report", "Logout"],
+            ["View existing reports", "Generate new report", "Update Profile", "Logout"],
         )
         if choice == "View existing reports":
             _view_existing_reports(svc)
         elif choice == "Generate new report":
             _generate_new_report(svc)
+        elif choice == "Update Profile":
+            _staff_update_profile(account)
         elif choice == "Logout":
             ui.ok("Log out successful!")
             return

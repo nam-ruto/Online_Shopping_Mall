@@ -6,6 +6,9 @@ from app.models.item import Item
 from app.services.account_service import AccountService
 from app.services.item_service import ItemService
 from app.services.messaging_service import MessagingService
+# Profile helpers (inlined from former staff_profile.py)
+from app.utils.validators import ensure_length_max, ensure_non_empty, ensure_email, ensure_phone_number
+from app.cli.ui import console
 from app.services.order_service import OrderService
 from rich.table import Table
 
@@ -15,7 +18,7 @@ def staff_portal(account) -> None:
         choice = ui.menu_select(
             "Staff Portal",
             "Choose an option",
-            ["Manage Inventory", "Check Customer Information", "Customer Support", "Logout"],
+            ["Manage Inventory", "Check Customer Information", "Update Profile", "Customer Support", "Logout"],
         )
         if choice == "Manage Inventory":
             _staff_inventory_portal()
@@ -23,6 +26,8 @@ def staff_portal(account) -> None:
             _staff_customer_info_portal()
         elif choice == "Customer Support":
             _staff_messaging_portal(account)
+        elif choice == "Update Profile":
+            _update_profile(account)
         elif choice == "Logout":
             ui.ok("Log out successful!")
             return
@@ -411,3 +416,86 @@ def _render_order_table(order_row, title: str = "Order") -> None:
         str(order_date or ""),
     )
     ui.console.print(table)
+
+
+def _print_profile_table(fields: list[tuple[str, str, str | None]]) -> None:
+    table = Table(title="My Profile", show_lines=True)
+    table.add_column("Field"); table.add_column("Value")
+    for label, _, value in fields:
+        table.add_row(label, str(value or ""))
+    console.print(table)
+
+
+def _prompt_address_update(acc):
+    country = ui.text(f"Country [{acc.country or ''}]:") or acc.country
+    state = ui.text(f"State [{acc.state or ''}]:") or acc.state
+    city = ui.text(f"City [{acc.city or ''}]:") or acc.city
+    address_line = ui.text(f"Address Line [{acc.address_line or ''}]:") or acc.address_line
+    zip_code = ui.text(f"Zip Code [{acc.zip_code or ''}]:") or acc.zip_code
+    phone = ui.text(f"Phone [{acc.phone or ''}]:") or acc.phone
+    try:
+        phone = ensure_phone_number(phone) if phone is not None else phone
+    except ValueError as ve:
+        ui.err(str(ve))
+        return acc
+    AccountService.update_partial(acc.id, country=country, state=state, city=city, address_line=address_line, zip_code=zip_code, phone=phone)
+    return AccountService.get_by_id(acc.id) or acc
+
+
+def _update_profile(account) -> None:
+    acc = AccountService.get_by_id(account.id) or account
+    fields = [
+        ("First Name", "first_name", acc.first_name),
+        ("Last Name", "last_name", acc.last_name),
+        ("Email", "email", acc.email),
+        ("Country", "country", acc.country),
+        ("State", "state", acc.state),
+        ("City", "city", acc.city),
+        ("Address Line", "address_line", acc.address_line),
+        ("Zip Code", "zip_code", acc.zip_code),
+        ("Phone", "phone", acc.phone),
+    ]
+    _print_profile_table(fields)
+    while True:
+        choices = [f"{f[0]}: {f[2] or ''}" for f in fields] + ["Done"]
+        choice = ui.select("Select a field to update", choices)
+        if choice == "Done":
+            return
+        # find field key
+        for label, key, value in fields:
+            if label == choice.split(":")[0]:
+                new_val = ui.text(f"Enter new value for {label}:")
+                if key == "email":
+                    try:
+                        new_val = ensure_email(new_val)
+                    except ValueError as ve:
+                        ui.err(str(ve))
+                        break
+                elif key == "phone":
+                    try:
+                        new_val = ensure_phone_number(new_val)
+                    except ValueError as ve:
+                        ui.err(str(ve))
+                        break
+                else:
+                    try:
+                        new_val = ensure_length_max(new_val, label.lower().replace(" ", "_"), 100)
+                    except ValueError as ve:
+                        ui.err(str(ve))
+                        break
+                AccountService.update_partial(account.id, **{key: new_val})
+                ui.ok(f"{label} updated successfully.")
+                acc = AccountService.get_by_id(account.id) or account
+                fields = [
+                    ("First Name", "first_name", acc.first_name),
+                    ("Last Name", "last_name", acc.last_name),
+                    ("Email", "email", acc.email),
+                    ("Country", "country", acc.country),
+                    ("State", "state", acc.state),
+                    ("City", "city", acc.city),
+                    ("Address Line", "address_line", acc.address_line),
+                    ("Zip Code", "zip_code", acc.zip_code),
+                    ("Phone", "phone", acc.phone),
+                ]
+                _print_profile_table(fields)
+                break

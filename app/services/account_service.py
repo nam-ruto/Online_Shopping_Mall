@@ -37,7 +37,6 @@ class AccountService:
         AccountRepository.update(account)
 
     @staticmethod
-    @staticmethod
     def update_partial(acc_id: str, data: dict | None = None, **kwargs) -> None:
         """Update only the provided non-None fields for an account record.
 
