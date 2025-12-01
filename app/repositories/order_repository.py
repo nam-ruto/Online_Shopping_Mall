@@ -4,6 +4,7 @@ from decimal import Decimal
 from typing import List, Optional
 
 from app.models import OrderStatus, PaymentMethod
+from app.models.order import Order
 from . import base
 from app.repositories.item_repository import ItemRepository
 
@@ -96,4 +97,10 @@ class OrderRepository:
         )
         return base.fetch_all(sql, (customer_id,))
 
-
+    @staticmethod
+    def get_by_id(order_id: int) -> Optional[Order]:
+        sql = (
+            f"SELECT * FROM {OrderRepository.ORDER_TABLE} WHERE id={order_id}"
+        )
+        row = base.fetch_one(sql)
+        return row if row else None
