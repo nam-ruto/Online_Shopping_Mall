@@ -133,13 +133,15 @@ def _handle_update_item(item_service: ItemService):
     description = ui.text(f"Description [{f"\"{item.description}\"" if item.description else "none"}]:")
     category = ui.text(f"Category [{f"\"{item.category}\"" if item.category else "none"}]:")
     try:
-        price = Decimal(ui.text(f"Price [{item.price}]:"))
+        price_text = ui.text(f"Price [{item.price}]:")
+        price = Decimal(price_text) if price_text != "" else item.price
     except:
         ui.err("Invalid input: price must be a real number.")
         ui.wait_continue()
         return
     try:
-        stock_quantity = int(ui.text(f"Stock quantity [{item.stock_quantity}]:"))
+        stock_quantity_text = ui.text(f"Stock quantity [{item.stock_quantity}]:")
+        stock_quantity = Decimal(stock_quantity_text) if stock_quantity_text != "" else item.stock_quantity
     except:
         ui.err("Invalid input: stock quantity must be a whole number.")
         ui.wait_continue()
