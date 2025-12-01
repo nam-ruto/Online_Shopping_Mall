@@ -28,9 +28,11 @@ def main() -> None:
         elif choice == "Login":
             acc = _handle_login(auth)
             if acc:
+                # Route user based on role
                 _route_by_role(acc)
-                _idle_wait()
-                return
+                ui.info("You have been logged out.")
+                ui.info("Returning to main menu.")
+                ui.wait_continue()
         elif choice == "Exit":
             ui.ok("Goodbye!")
             return
@@ -86,6 +88,17 @@ def _handle_login(auth: AuthService):
         ui.ok(result.message)
     else:
         ui.err(result.message)
+
+        # Offer user to try again or reset password
+        choice = ui.menu_select("Login Failed", "Choose an option", ["Try Again", "Reset Password", "Exit to Main Menu"])
+        if choice == "Try Again":
+            return _handle_login(auth)
+        elif choice == "Reset Password":
+            ui.info("Password reset is not implemented yet. Please contact support.")
+            ui.info("Returning to main menu.")
+        else:
+            ui.info("Returning to main menu.")
+
         ui.wait_continue()
     return result.account
 
