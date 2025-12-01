@@ -30,9 +30,11 @@ def main() -> None:
             if acc:
                 # Route user based on role
                 _route_by_role(acc)
+                # The user must be logged out to return here
                 ui.info("You have been logged out.")
-                ui.info("Returning to main menu.")
-                ui.wait_continue()
+            # User either logged out or failed/declined to log in
+            ui.info("Returning to main menu.")
+            ui.wait_continue()
         elif choice == "Exit":
             ui.ok("Goodbye!")
             return
@@ -69,6 +71,7 @@ def _handle_register(auth: AuthService):
     first_name = ui.text("First name:")
     last_name = ui.text("Last name:")
     email = ui.text("Email:")
+
     result = auth.register(user_name, password, first_name, last_name, email, role, role_code)
     if result.success:
         ui.ok(result.message)
@@ -95,11 +98,10 @@ def _handle_login(auth: AuthService):
             return _handle_login(auth)
         elif choice == "Reset Password":
             ui.info("Password reset is not implemented yet. Please contact support.")
-            ui.info("Returning to main menu.")
+            # Exit to main menu
         else:
-            ui.info("Returning to main menu.")
-
-        ui.wait_continue()
+            pass # Exit to main menu
+    
     return result.account
 
 
