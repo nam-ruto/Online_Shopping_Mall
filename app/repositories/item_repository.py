@@ -1,6 +1,5 @@
 from typing import Optional
 from app.models import Item
-from app.repositories.account_repository import AccountRepository
 from . import base
 
 def _row_to_item(row: dict) -> Item:
@@ -49,3 +48,8 @@ class ItemRepository:
     @staticmethod
     def delete(id: int) -> None:
         base.delete_from_dataclass(ItemRepository.TABLE, id)
+
+    @staticmethod
+    def update(id: int, item: Item) -> None:
+        sql = f"UPDATE {ItemRepository.TABLE} SET name=\"{item.name}\", description=\"{item.description}\", category=\"{item.category}\", price={item.price}, stock_quantity={item.stock_quantity}, like_count={item.like_count} WHERE id={id}"
+        base.execute(sql)
