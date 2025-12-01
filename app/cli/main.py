@@ -2,8 +2,7 @@ from __future__ import annotations
 
 from typing import Callable, Dict
 
-from app.models import Role
-from app.repositories.item_repository import ItemRepository
+from app.models import Account, Role
 from app.services.auth_service import AuthService
 from app.cli import ui
 from app.cli.customer_cli import customer_portal
@@ -62,12 +61,13 @@ def _handle_register(auth: AuthService):
             return
 
     user_name = ui.text("Username:")
-    password = ui.password("Password:")
-    password2 = ui.password("Retype password:")
-    if password != password2:
-        ui.err("Passwords do not match. Please try again!")
-        ui.wait_continue()
-        return
+    while True:
+        password = ui.password("Password:")
+        password2 = ui.password("Retype password:")
+        if password != password2:
+            ui.err("Passwords do not match. Please try again!")
+        else:
+            break
     first_name = ui.text("First name:")
     last_name = ui.text("Last name:")
     email = ui.text("Email:")
@@ -128,7 +128,7 @@ def _handle_login(auth: AuthService):
     return result.account
 
 
-def _route_by_role(account) -> None:
+def _route_by_role(account: Account) -> None:
     if account.role == Role.CUSTOMER:
         customer_portal(account)
     elif account.role == Role.STAFF:

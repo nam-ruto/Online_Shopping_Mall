@@ -3,14 +3,17 @@ from __future__ import annotations
 from typing import Dict, Iterable, List, Tuple
 
 from app.models import Item
-from app.repositories.browse_item_repository import BrowseItemRepository
-from app.repositories.item_repository import ItemRepository
+from app.services.catalog_service import CatalogService
+from app.services.item_service import ItemService
 
 
 class CartService:
     def __init__(self) -> None:
         # session-local in-memory map: customer_id -> item_id -> quantity
         self._cart: Dict[str, Dict[int, int]] = {}
+        # service helpers (kept small and local to the instance)
+        self._items = ItemService()
+        self._catalog = CatalogService()
 
     def add_item(self, customer_id: str, item_id: int, quantity: int) -> None:
         if quantity <= 0:
@@ -31,7 +34,7 @@ class CartService:
         bag = self._cart.get(customer_id, {})
         out: List[Tuple[Item, int]] = []
         for iid, qty in sorted(bag.items()):
-            it = ItemRepository.get_by_id(iid)
+            it = self._items.get_by_id(iid)
             if it:
                 out.append((it, qty))
         return out

@@ -5,7 +5,7 @@ from typing import Dict, Iterable, List, Optional
 
 from app.models import PaymentMethod, OrderStatus
 from app.models.order import Order
-from app.repositories.item_repository import ItemRepository
+from app.services.item_service import ItemService
 from app.repositories.order_repository import OrderRepository
 
 class OrderService:
@@ -21,8 +21,9 @@ class OrderService:
         # Calculate total and validate stock
         total = Decimal("0.00")
         selected: List[tuple[int, int, Decimal]] = []
+        item_svc = ItemService()
         for iid, qty in item_id_to_quantity.items():
-            it = ItemRepository.get_by_id(iid)
+            it = item_svc.get_by_id(iid)
             if it is None:
                 raise ValueError(f"Item {iid} not found")
             if qty <= 0:

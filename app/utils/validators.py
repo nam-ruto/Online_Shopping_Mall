@@ -16,6 +16,14 @@ def ensure_email(value: str) -> str:
         raise ValueError("email is not valid")
     return value
 
+def ensure_phone_number(value: str) -> str:
+    value = ensure_non_empty(value, "phone")
+    # Simple phone number validation (allows digits, spaces, dashes, parentheses, and plus sign)
+    # Outputs as a sequence of digits only
+    cleaned = re.sub(r"[^\d]", "", value)
+    if len(cleaned) < 7 or len(cleaned) > 15:
+        raise ValueError("phone number is not valid")
+    return cleaned
 
 def ensure_length_max(value: str, field: str, max_len: int) -> str:
     value = ensure_non_empty(value, field)

@@ -65,4 +65,9 @@ class MessageRepository:
         )
         base.execute(sql, (conversation_id, MessageRole.CUSTOMER.value))
 
+    @staticmethod
+    def update_partial(msg_id: int, data: dict) -> None:
+        """Update only the provided non-None fields for a message record."""
+        base.update(MessageRepository.TABLE, msg_id, data)
+
 

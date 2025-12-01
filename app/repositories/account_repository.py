@@ -111,36 +111,7 @@ class AccountRepository:
         rows = base.fetch_all(sql)
         return [_row_to_account(row) for row in rows] if rows else None
 
-    @staticmethod
-    def update_address(
-        acc_id: str,
-        country: Optional[str],
-        state: Optional[str],
-        city: Optional[str],
-        address_line: Optional[str],
-        zip_code: Optional[str],
-        phone: Optional[str],
-    ) -> None:
-        sql = (
-            f"UPDATE {AccountRepository.TABLE} SET "
-            "country=%s, state=%s, city=%s, address_line=%s, zip_code=%s, phone=%s "
-            "WHERE id=%s"
-        )
-        base.execute(sql, (country, state, city, address_line, zip_code, phone, acc_id))
-
-    @staticmethod
-    def update_basic(
-        acc_id: str,
-        first_name: Optional[str],
-        last_name: Optional[str],
-        email: Optional[str],
-    ) -> None:
-        sql = (
-            f"UPDATE {AccountRepository.TABLE} SET "
-            "first_name=%s, last_name=%s, email=%s "
-            "WHERE id=%s"
-        )
-        base.execute(sql, (first_name, last_name, email, acc_id))
+    # NOTE: update_basic and update_address were removed in favor of update_partial
 
     @staticmethod
     def update(account: Account) -> None:
@@ -172,3 +143,9 @@ class AccountRepository:
                 account.id,
             ),
         )
+
+    @staticmethod
+    def update_partial(acc_id: str, data: dict) -> None:
+        """Update only the provided non-None fields for an account record."""
+        # Keep column validation/safety in base.update
+        base.update(AccountRepository.TABLE, acc_id, data)

@@ -50,3 +50,9 @@ class ItemService:
     def update_item(self, id: int, item: Item) -> ItemResult:
         ItemRepository.update(id, item)
         return ItemResult(True, "Item update successful")
+
+    def get_by_id(self, id: int) -> Optional[Item]:
+        return ItemRepository.get_by_id(id)
+
+    def list_items(self) -> Optional[list[Item]]:
+        return ItemRepository.list()

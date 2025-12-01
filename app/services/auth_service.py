@@ -4,9 +4,8 @@ import random
 import string
 from datetime import datetime, timedelta
 
-from app.db import connection
 from app.models import Account, Role
-from app.repositories.account_repository import AccountRepository
+from app.services.account_service import AccountService
 from app.utils.hashing import make_password_hash, verify_password
 from app.utils.validators import ensure_email, ensure_length_max, ensure_non_empty
 
@@ -49,9 +48,9 @@ class AuthService:
                 return AuthResult(False, "Invalid CEO registration code")
 
         # Uniqueness checks
-        if AccountRepository.get_by_username(user_name):
+        if AccountService.get_by_username(user_name):
             return AuthResult(False, "Username already exists")
-        if AccountRepository.get_by_email(email):
+        if AccountService.get_by_email(email):
             return AuthResult(False, "Email already exists")
 
         pwd_hash, salt = make_password_hash(password)
@@ -65,14 +64,14 @@ class AuthService:
             role=role,
             email=email,
         )
-        AccountRepository.create(account)
+        AccountService.create_account(account)
         return AuthResult(True, "Registration successful", account)
 
     # Login method
     def login(self, user_name: str, password: str) -> AuthResult:
         user_name = ensure_non_empty(user_name, "user_name")
         password = ensure_non_empty(password, "password")
-        account = AccountRepository.get_by_username(user_name)
+        account = AccountService.get_by_username(user_name)
         if account is None:
             return AuthResult(False, "Invalid username or password")
         if not verify_password(password, account.salt, account.password):
@@ -82,7 +81,7 @@ class AuthService:
     # Password reset initiation: send token to email
     def password_reset_initiate(self, email: str) -> AuthResult:
         email = ensure_email(email)
-        account = AccountRepository.get_by_email(email)
+        account = AccountService.get_by_email(email)
         if account is None:
             return AuthResult(False, "Email not found")
         
@@ -90,7 +89,7 @@ class AuthService:
         expiration = self._calculate_token_expiration()
         account.password_reset_token = token
         account.password_reset_token_expiration = expiration
-        AccountRepository.update(account)
+        AccountService.update_account(account)
 
         # In a real application, send the token via email here
         # For this example, we just return it in the message
@@ -100,7 +99,7 @@ class AuthService:
     def password_reset_verify(self, email: str, token: str) -> AuthResult:
         email = ensure_email(email)
         token = ensure_non_empty(token, "token")
-        account = AccountRepository.get_by_email(email)
+        account = AccountService.get_by_email(email)
         if account is None:
             return AuthResult(False, "Email not found")
         if account.password_reset_token != token:
@@ -115,7 +114,7 @@ class AuthService:
     def reset_password(self, email: str, new_password: str) -> AuthResult:
         email = ensure_email(email)
         new_password = ensure_non_empty(new_password, "new_password")
-        account = AccountRepository.get_by_email(email)
+        account = AccountService.get_by_email(email)
         if account is None:
             return AuthResult(False, "Email not found")
         
@@ -125,7 +124,7 @@ class AuthService:
         # Clear reset token and expiration
         account.password_reset_token = None
         account.password_reset_token_expiration = None
-        AccountRepository.update(account)
+        AccountService.update_account(account)
         
         return AuthResult(True, "Password has been reset successfully")
     

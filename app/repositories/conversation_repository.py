@@ -46,4 +46,9 @@ class ConversationRepository:
         )
         return [_row_to_conversation(r) for r in rows]
 
+    @staticmethod
+    def update_partial(conv_id: int, data: dict) -> None:
+        """Update only the provided non-None fields for a conversation record."""
+        base.update(ConversationRepository.TABLE, conv_id, data)
+
 

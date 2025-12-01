@@ -3,8 +3,7 @@ from decimal import Decimal
 
 from app.cli import ui
 from app.models.item import Item
-from app.repositories.account_repository import AccountRepository
-from app.repositories.item_repository import ItemRepository
+from app.services.account_service import AccountService
 from app.services.item_service import ItemService
 from app.services.messaging_service import MessagingService
 from app.services.order_service import OrderService
@@ -40,7 +39,7 @@ def _staff_inventory_portal() -> None:
             ["List all items", "Add a new item", "Delete an existing item", "Update an existing item", "Quit"]
         )
         if choice == "List all items":
-            items = ItemRepository.list()
+            items = item_service.list_items()
             if not items:
                 ui.err("Could not load item list, or there are no items in the list.")
             else:
@@ -91,7 +90,7 @@ def _handle_delete_item(item_service: ItemService):
     ui.banner("Inventory", "Delete an existing item")
 
     id = int(ui.text("Item ID:"))
-    item = ItemRepository.get_by_id(id)
+    item = item_service.get_by_id(id)
     if not item:
         ui.err("No item exists with that ID.")
         return
@@ -121,7 +120,7 @@ def _handle_update_item(item_service: ItemService):
         ui.err("Invalid input: order ID must be a whole number.")
         ui.wait_continue()
         return
-    item = ItemRepository.get_by_id(id)
+    item = item_service.get_by_id(id)
     if not item:
         ui.err("No item exists with that ID.")
         return
@@ -187,7 +186,7 @@ def _handle_search_customer() -> None:
     last_name = ui.text("(optional) Last name:")
     id = ui.text(f"(optional) Customer ID:")
 
-    rows = AccountRepository.get_by_name_or_id(first_name if first_name != "" else None, last_name if last_name != "" else None, id if id != "" else None)
+    rows = AccountService.get_by_name_or_id(first_name if first_name != "" else None, last_name if last_name != "" else None, id if id != "" else None)
     if rows:
         _render_accounts_table(rows, title="Customer Search Results")
     else:

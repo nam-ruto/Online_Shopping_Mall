@@ -1,28 +1,30 @@
 from __future__ import annotations
 
-from app.models import Role, PaymentMethod
+from app.models import Account, Role, PaymentMethod
 from app.cli import ui
 from app.services.messaging_service import MessagingService
-from app.repositories.browse_item_repository import BrowseItemRepository
+from app.services.catalog_service import CatalogService
 from app.services.cart_service import CartService
 from app.services.like_service import LikeService
 from app.services.order_service import OrderService
-from app.repositories.account_repository import AccountRepository
-from app.utils.validators import ensure_length_max, ensure_non_empty, ensure_email
+from app.services.account_service import AccountService
+from app.utils.validators import ensure_length_max, ensure_non_empty, ensure_email, ensure_phone_number
 from rich.table import Table
 from app.cli.ui import console
-from app.repositories.item_repository import ItemRepository
+from app.services.item_service import ItemService
 
 _cart = CartService()
 _likes = LikeService()
 _orders = OrderService()
+_catalog = CatalogService()
+_items = ItemService()
 
 
-def customer_portal(account) -> None:
+def customer_portal(account: Account) -> None:
     while True:
         choice = ui.menu_select(
             "Customer Portal",
-            "Choose an option",
+            f"Hi {account.user_name}! Choose an option",
             [
                 "Browse Catalog (View Items)",
                 "My Shopping Cart",
@@ -37,7 +39,7 @@ def customer_portal(account) -> None:
             _browse_catalog(account)
         elif choice == "My Shopping Cart":
             _shopping_cart(account)
-        elif choice == "My Order":
+        elif choice == "My Orders":
             _my_orders(account)
         elif choice == "My Liked Items":
             _my_liked_items(account)
@@ -53,7 +55,7 @@ def customer_portal(account) -> None:
             ui.wait_continue()
 
 def _browse_catalog(account) -> None:
-    items = BrowseItemRepository.list_all_popular_first()
+    items = _catalog.list_popular_first()
     table = Table(title="Catalog", show_lines=True)
     table.add_column("ID"); table.add_column("Name"); table.add_column("Category")
     table.add_column("Price"); table.add_column("Stock"); table.add_column("Likes")
@@ -70,7 +72,7 @@ def _browse_catalog(account) -> None:
                 ui.err("Please enter a valid numeric item ID.")
                 continue
             iid = int(raw)
-            if ItemRepository.get_by_id(iid) is None:
+            if _items.get_by_id(iid) is None:
                 ui.err(f"Item {iid} does not exist.")
                 continue
             qty_raw = ui.text("Quantity:").strip()
@@ -81,7 +83,8 @@ def _browse_catalog(account) -> None:
             if qty <= 0:
                 ui.err("Quantity must be greater than 0.")
                 continue
-            if qty > ItemRepository.get_by_id(iid).stock_quantity:
+            item = _items.get_by_id(iid)
+            if qty > item.stock_quantity:
                 ui.err(f"Item {iid} does not have enough stock.")
                 continue
             _cart.add_item(account.id, iid, qty)
@@ -96,7 +99,7 @@ def _browse_catalog(account) -> None:
                 ui.err("Please enter a valid numeric item ID.")
                 continue
             iid = int(raw)
-            if ItemRepository.get_by_id(iid) is None:
+            if _items.get_by_id(iid) is None:
                 ui.err(f"Item {iid} does not exist.")
                 continue
             liked = _likes.like_items(account.id, [iid])
@@ -127,7 +130,7 @@ def _shopping_cart(account) -> None:
                 ui.info("No items specified.")
             else:
                 for iid in ids:
-                    if ItemRepository.get_by_id(iid) is None:
+                    if _items.get_by_id(iid) is None:
                         ui.err(f"Item {iid} does not exist.")
                         continue
                     if iid not in _cart.get_quantities(account.id):
@@ -148,7 +151,7 @@ def _shopping_cart(account) -> None:
                     ui.err("Please enter a valid numeric item ID.")
                     continue
                 iid = int(raw)
-                if ItemRepository.get_by_id(iid) is None:
+                if _items.get_by_id(iid) is None:
                     ui.err(f"Item {iid} does not exist.")
                     continue
                 if iid not in _cart.get_quantities(account.id):
@@ -179,7 +182,7 @@ def _shopping_cart(account) -> None:
                 ui.wait_continue()
                 continue
             # Address confirmation/update
-            acc = AccountRepository.get_by_id(account.id) or account
+            acc = AccountService.get_by_id(account.id) or account
             _show_address(acc)
             # Check if any address exists
             has_any = any([acc.country, acc.state, acc.city, acc.address_line, acc.zip_code, acc.phone])
@@ -216,7 +219,7 @@ def _shopping_cart(account) -> None:
         else:
             return
 
-def _my_orders(account) -> None:
+def _my_orders(account: Account) -> None:
     rows = _orders.list_orders(account.id)
     if not rows:
         ui.banner("My Orders", "You have no orders yet.")
@@ -229,7 +232,7 @@ def _my_orders(account) -> None:
     console.print(table)
     ui.wait_continue()
 
-def _my_liked_items(account) -> None:
+def _my_liked_items(account: Account) -> None:
     rows = _likes.list_liked(account.id)
     if not rows:
         ui.banner("My Liked Items", "You have no liked items. Try liking some items from the catalog!")
@@ -247,7 +250,7 @@ def _my_liked_items(account) -> None:
     if cmd.startswith("/remove"):
         ids = _parse_ids(cmd[len("/remove"):])
         for iid in ids:
-            if ItemRepository.get_by_id(iid) is None:
+            if _items.get_by_id(iid) is None:
                 ui.err(f"Item {iid} does not exist.")
                 continue
         removed = _likes.unlike_items(account.id, ids)
@@ -260,10 +263,11 @@ def _my_liked_items(account) -> None:
         ui.err("Unknown command")
         ui.wait_continue()
 
-def _update_profile(account) -> None:
+def _update_profile(account: Account) -> None:
     # Display current info
-    acc = AccountRepository.get_by_id(account.id) or account
+    acc = AccountService.get_by_id(account.id) or account
     fields = [
+        ("User name", "user_name", acc.user_name),
         ("First Name", "first_name", acc.first_name),
         ("Last Name", "last_name", acc.last_name),
         ("Email", "email", acc.email),
@@ -284,70 +288,29 @@ def _update_profile(account) -> None:
         for label, key, value in fields:
             if label == choice:
                 new_val = ui.text(f"Enter new value for {label}:")
-                # apply update if address-related
-                if key in {"country", "state", "city", "address_line", "zip_code", "phone"}:
-                    AccountRepository.update_address(
-                        acc.id,
-                        country=new_val if key == "country" else acc.country,
-                        state=new_val if key == "state" else acc.state,
-                        city=new_val if key == "city" else acc.city,
-                        address_line=new_val if key == "address_line" else acc.address_line,
-                        zip_code=new_val if key == "zip_code" else acc.zip_code,
-                        phone=new_val if key == "phone" else acc.phone,
-                    )
-                    # refresh
-                    acc = AccountRepository.get_by_id(acc.id) or acc
-                    fields = [
-                        ("First Name", "first_name", acc.first_name),
-                        ("Last Name", "last_name", acc.last_name),
-                        ("Email", "email", acc.email),
-                        ("Country", "country", acc.country),
-                        ("State", "state", acc.state),
-                        ("City", "city", acc.city),
-                        ("Address Line", "address_line", acc.address_line),
-                        ("Zip Code", "zip_code", acc.zip_code),
-                        ("Phone", "phone", acc.phone),
-                    ]
-                    _print_profile_table(fields)
-                elif key in {"first_name", "last_name", "email"}:
+                
+                if key == "email":
                     try:
-                        if key == "email":
-                            validated = ensure_email(new_val)
-                            AccountRepository.update_basic(
-                                acc.id,
-                                first_name=acc.first_name,
-                                last_name=acc.last_name,
-                                email=validated,
-                            )
-                        else:
-                            validated = ensure_length_max(ensure_non_empty(new_val, key), key, 50)
-                            AccountRepository.update_basic(
-                                acc.id,
-                                first_name=validated if key == "first_name" else acc.first_name,
-                                last_name=validated if key == "last_name" else acc.last_name,
-                                email=acc.email,
-                            )
-                        acc = AccountRepository.get_by_id(acc.id) or acc
-                        fields = [
-                            ("First Name", "first_name", acc.first_name),
-                            ("Last Name", "last_name", acc.last_name),
-                            ("Email", "email", acc.email),
-                            ("Country", "country", acc.country),
-                            ("State", "state", acc.state),
-                            ("City", "city", acc.city),
-                            ("Address Line", "address_line", acc.address_line),
-                            ("Zip Code", "zip_code", acc.zip_code),
-                            ("Phone", "phone", acc.phone),
-                        ]
-                        _print_profile_table(fields)
-                        ui.ok("Profile updated.")
-                    except Exception as e:
-                        ui.err(str(e))
-                        ui.wait_continue()
+                        new_val = ensure_email(new_val)
+                    except ValueError as ve:
+                        ui.err(str(ve))
+                        break
+                elif key == "phone":
+                    try:
+                        new_val = ensure_phone_number(new_val)
+                    except ValueError as ve:
+                        ui.err(str(ve))
+                        break
                 else:
-                    ui.info("Updating that field is not supported yet.")
-                    ui.wait_continue()
-                break
+                    try:
+                        new_val = ensure_length_max(new_val, label.lower().replace(" ", "_"), 100)
+                    except ValueError as ve:
+                        ui.err(str(ve))
+                        break
+                AccountService.update_partial(account.id, {key: new_val})
+                ui.ok(f"{label} updated successfully.")
+                # Refresh account info
+                acc = AccountService.get_by_id(account.id) or account
 
 def _print_profile_table(fields: list[tuple[str, str, str | None]]) -> None:
     table = Table(title="My Profile", show_lines=True)
@@ -376,9 +339,9 @@ def _prompt_address_update(acc):
     city = ui.text(f"City [{acc.city or ''}]:") or acc.city
     address_line = ui.text(f"Address Line [{acc.address_line or ''}]:") or acc.address_line
     zip_code = ui.text(f"Zip Code [{acc.zip_code or ''}]:") or acc.zip_code
-    phone = ui.text(f"Phone [{acc.phone or ''}]:") or acc.phone
-    AccountRepository.update_address(acc.id, country, state, city, address_line, zip_code, phone)
-    return AccountRepository.get_by_id(acc.id) or acc
+    phone = ensure_phone_number(ui.text(f"Phone [{acc.phone or ''}]:") or acc.phone)
+    AccountService.update_partial(acc.id, country=country, state=state, city=city, address_line=address_line, zip_code=zip_code, phone=phone)
+    return AccountService.get_by_id(acc.id) or acc
 
 def _parse_ids(text: str) -> list[int]:
     raw = text.replace(",", " ").split()
@@ -388,7 +351,7 @@ def _parse_ids(text: str) -> list[int]:
             out.append(int(tok))
     return out
 
-def _customer_messaging_portal(account) -> None:
+def _customer_messaging_portal(account: Account) -> None:
     svc = MessagingService()
     while True:
         choice = ui.menu_select(

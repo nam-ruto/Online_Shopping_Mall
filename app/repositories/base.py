@@ -55,6 +55,34 @@ def insert_from_dataclass(table: str, data: Any, include: Optional[set[str]] = N
     sql = f"INSERT INTO {table} ({columns}) VALUES ({placeholders})"
     execute(sql, list(row.values()))
 
+
+def update(table: str, id_value: int | str, data: dict, id_column: str = "id") -> None:
+    """
+    Generic partial-update helper.
+    - Only non-None values in `data` are applied.
+    - Column names are validated against a safe pattern to avoid SQL injection via column names.
+    - Uses parameterized queries for values.
+    """
+    if not data:
+        return
+    # filter None values (only update provided fields)
+    fields = {k: v for k, v in data.items() if v is not None}
+    if not fields:
+        return
+
+    # very small safety check for column names: only allow alnum + underscore and must start with letter/_
+    import re
+
+    col_re = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
+    for k in fields.keys():
+        if not col_re.match(k):
+            raise ValueError(f"Invalid column name: {k}")
+
+    set_clause = ", ".join([f"{col}=%s" for col in fields.keys()])
+    params = list(fields.values()) + [id_value]
+    sql = f"UPDATE {table} SET {set_clause} WHERE {id_column}=%s"
+    execute(sql, params)
+
 def delete_from_dataclass(table: str, id: int | str) -> None:
     sql = f"DELETE FROM {table} WHERE id={id}"
     execute(sql)
